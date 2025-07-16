@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Malla Curricular Medicina Veterinaria</title>
+  <style>
+    body { background: #fff; font-family: Arial, sans-serif; padding: 20px; }
+    h1 { text-align: center; color: #880e4f; }
+    .ciclo { background: #f8bbd0; color: #fff; padding: 10px; border-radius: 12px; margin: 20px 0; }
+    .barra { height: 20px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+    .barra-inner { height: 100%; background: #880e4f; width: 0%; transition: width 0.3s; }
+    .curso { display: inline-block; background: #880e4f; color: #fff; padding: 10px 15px; border-radius: 8px; margin: 5px; cursor: pointer; }
+    .curso.completado { background: #560027; text-decoration: line-through; }
+  </style>
+</head>
+<body>
+  <h1>Malla Curricular Medicina Veterinaria</h1>
+  <div id="malla"></div>
+  <script>
+    const cursos = [
+      { id: 1, nombre: "Bioquímica", ciclo: 1, deps: [] },
+      { id: 2, nombre: "Biofísica", ciclo: 1, deps: [] },
+      { id: 3, nombre: "Biología celular y del desarrollo", ciclo: 1, deps: [] },
+      { id: 4, nombre: "Bioestadística", ciclo: 1, deps: [] },
+      { id: 5, nombre: "Embriología y anatomía sistemática", ciclo: 2, deps: [] },
+      { id: 6, nombre: "Fisicoquímica aplicada a la fisiología veterinaria", ciclo: 2, deps: [1,2] },
+      { id: 7, nombre: "Microbiología I", ciclo: 2, deps: [1,3] },
+      { id: 8, nombre: "Histología", ciclo: 2, deps: [3] },
+      { id: 9, nombre: "Inmunología animal básica", ciclo: 3, deps: [1,7,8] },
+      { id: 10, nombre: "Anatomía veterinaria", ciclo: 3, deps: [5] },
+      { id: 11, nombre: "Economía general y sociología", ciclo: 3, deps: [4] },
+      { id: 12, nombre: "Microbiología II", ciclo: 3, deps: [7,8] },
+      { id: 13, nombre: "Zootecnia general", ciclo: 3, deps: [10,11] },
+      { id: 14, nombre: "Producción de bovinos de carne", ciclo: 5, deps: [13] },
+      { id: 15, nombre: "Patología especial", ciclo: 5, deps: [12] },
+      { id: 16, nombre: "Farmacología general", ciclo: 5, deps: [12] },
+      { id: 17, nombre: "Genética general", ciclo: 5, deps: [12] },
+      { id: 18, nombre: "Tecnología aplicada a los productos alimenticios", ciclo: 6, deps: [14,15] },
+      { id: 19, nombre: "Teriogenología", ciclo: 6, deps: [14,15] }
+    ];
+    let completados = JSON.parse(localStorage.getItem('completadosMV')) || [];
+    const mallaDiv = document.getElementById('malla');
+    function render() {
+      mallaDiv.innerHTML = '';
+      for (let c = 1; c <= 6; c++) {
+        const cicloCursos = cursos.filter(x => x.ciclo === c);
+        const completadosCiclo = cicloCursos.filter(x => completados.includes(x.id)).length;
+        const barra = completadosCiclo / cicloCursos.length * 100;
+        const cicloDiv = document.createElement('div');
+        cicloDiv.className = 'ciclo';
+        cicloDiv.innerHTML = `<h2>${c}° Año</h2>
+          <div class="barra"><div class="barra-inner" style="width:${barra}%"></div></div>`;
+        cicloCursos.forEach(curso => {
+          const depsCompletos = curso.deps.every(dep => completados.includes(dep));
+          const bloqueado = curso.deps.length && !depsCompletos && !completados.includes(curso.id);
+          const div = document.createElement('div');
+          div.className = 'curso';
+          if (completados.includes(curso.id)) div.classList.add('completado');
+          div.textContent = curso.nombre;
+          div.onclick = () => {
+            if (bloqueado) return;
+            if (completados.includes(curso.id)) completados = completados.filter(id => id !== curso.id);
+            else completados.push(curso.id);
+            localStorage.setItem('completadosMV', JSON.stringify(completados));
+            render();
+          };
+          cicloDiv.appendChild(div);
+        });
+        mallaDiv.appendChild(cicloDiv);
+      }
+    }
+    render();
+  </script>
+</body>
+</html>
